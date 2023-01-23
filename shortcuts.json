@@ -10,7 +10,7 @@
         {
             "action": "PASTECLIPBOARD",
             "key": {
-                "default": "Ctrl+Alt+K"
+                "default": "Ctrl+Shift+K"
             }
         }
     ]

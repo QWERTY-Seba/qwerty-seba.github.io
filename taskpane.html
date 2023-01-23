@@ -33,13 +33,6 @@
 
     Office.actions.associate('PASTECLIPBOARD', function () {
         console.log("DEBUGINS")
-        navigator.clipboard.readText().then(clipText => {
-            Excel.run(function (ctx) {
-                var sheet = ctx.workbook.worksheets.getActiveWorksheet();
-                sheet.getRange("A1").values = clipText;
-                return ctx.sync();
-            }).catch(errorHandler);
-        });
     });
 
 

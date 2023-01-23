@@ -24,29 +24,23 @@
 
     function sayHello() {
         Excel.run(context => {
-
             // Insert text 'Hello world!' into cell A1.
             context.workbook.worksheets.getActiveWorksheet().getRange("A1").values = [['Hello world!']];
-
             // sync the context to run the previous API call, and return.
             return context.sync();
         });
     }
 
-    Office.initialize = function () {
-        Office.context.document.registerCommand("pasteClipboard", pasteClipboard, {icon: "paste", title: "Paste Clipboard"});
-        Office.context.document.addHandlerAsync(Office.EventType.DocumentEvents.OnAccessKey, pasteClipboard);
-    };
-
-    function pasteClipboard() {
-    navigator.clipboard.readText().then(clipText => {
-        Excel.run(function (ctx) {
-            var sheet = ctx.workbook.worksheets.getActiveWorksheet();
-            sheet.getRange("A1").values = clipText;
-            return ctx.sync();
-        }).catch(errorHandler);
+    Office.actions.associate('PASTECLIPBOARD', function () {
+        navigator.clipboard.readText().then(clipText => {
+            Excel.run(function (ctx) {
+                var sheet = ctx.workbook.worksheets.getActiveWorksheet();
+                sheet.getRange("A1").values = clipText;
+                return ctx.sync();
+            }).catch(errorHandler);
+        });
     });
-}
+
 
 </script>
 

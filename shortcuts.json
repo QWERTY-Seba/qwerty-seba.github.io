@@ -1,0 +1,17 @@
+{
+    "actions": [
+        {
+            "id": "PASTECLIPBOARD",
+            "type": "ExecuteFunction",
+            "name": "Paste"
+        }        
+    ],
+    "shortcuts": [
+        {
+            "action": "PASTECLIPBOARD",
+            "key": {
+                "default": "Ctrl+Alt+K"
+            }
+        }
+    ]
+}

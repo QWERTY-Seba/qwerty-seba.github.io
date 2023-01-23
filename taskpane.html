@@ -4,6 +4,7 @@
 <head>
     <!-- Office JavaScript API -->
     <script type="text/javascript" src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
+    <script type="text/javascript" src="taskpane.js"></script>
 </head>
 
 <body>
@@ -13,29 +14,4 @@
     <!-- The following image URL tracks diagnostic data for this sample add-in. Please remove the image tag if you reuse this sample in your own code project. -->
     <img src="https://pnptelemetry.azurewebsites.net/pnp-officeaddins/samples/excel-add-in-hello-world-run" />
 </body>
-
-<script>
-    Office.onReady((info) => {
-        // Check that we loaded into Excel
-        if (info.host === Office.HostType.Excel) {
-            document.getElementById("helloButton").onclick = sayHello;
-        }
-    });
-
-    function sayHello() {
-        Excel.run(context => {
-            // Insert text 'Hello world!' into cell A1.
-            context.workbook.worksheets.getActiveWorksheet().getRange("A1").values = [['Hello world!']];
-            // sync the context to run the previous API call, and return.
-            return context.sync();
-        });
-    }
-
-    Office.actions.associate('PASTECLIPBOARD', function () {
-        console.log("DEBUGINS")
-    });
-
-
-</script>
-
 </html>

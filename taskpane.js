@@ -60,9 +60,9 @@ async function traer_casos_no_procesados(){
     return resultado;
 }
 
-// Office.actions.associate('PASTECLIPBOARD', traer_casos_no_procesados());
-
-
+//Office.actions.associate('PASTECLIPBOARD', traer_casos_no_procesados());
+Office.context.document.settings.set("Office.AutoShowTaskpaneWithDocument", true);
+Office.context.document.settings.saveAsync();
 Office.onReady((info) => {
     // Check that we loaded into Excel
     if (info.host === Office.HostType.Excel) {

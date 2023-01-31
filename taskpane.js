@@ -6,23 +6,26 @@
 //         div.id = id_div
 //         document.body.appendChild(div)
 //         return div;
-        
 //     }
-
 //     div.innerHTML = ""
 //     return div;
-    
 // }
 
 var hoja_actual = "Sheet1"
 
+// function traer_indice_columna_por_nombre(hoja, nombre_columna){
+//     return;
+// }
+
 //Probablemente la function necesite que retorne los indices de cada fila que se extraiga para tener referencia al momento de volver a insertar
 async function traer_casos_no_procesados(){
     var cantidad_filas_ronda = 10
-    var resultado = null
+    var resultado = []
 
     await Excel.run(async (context) => {
         let hoja = context.workbook.worksheets.getItem(hoja_actual);
+
+        //Cambiar a dinamico, para encontrar indice de columna necesario no escribirlo directamente
         let indice_ultimo_rango = hoja.getRange("A:A")
                                     .getUsedRange()
                                     .getLastRow()
@@ -61,12 +64,12 @@ async function traer_casos_no_procesados(){
 }
 
 //Office.actions.associate('PASTECLIPBOARD', traer_casos_no_procesados());
-Office.context.document.settings.set("Office.AutoShowTaskpaneWithDocument", true);
-Office.context.document.settings.saveAsync();
+
 Office.onReady((info) => {
     // Check that we loaded into Excel
     if (info.host === Office.HostType.Excel) {
-
+        Office.context.document.settings.set("Office.AutoShowTaskpaneWithDocument", true);
+        Office.context.document.settings.saveAsync();
     }
 });
 

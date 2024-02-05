@@ -1,21 +1,157 @@
 var nombre_hoja = "Completar"
-var columnas_hoja = null
+
+//CAMBIAR A RANGO ENCABEZADOS
 var letra_primera_columna_encabezado = "A"
+var indice_primera_fila_encabezado = 1
 var letra_ultima_columna_encabezado = "K" //Columna con el dato de respuesta
+
 var indice_columna_inspeccionar = 9 //respuesta
 var letra_columna_inspeccionar = "J" //respuesta
-var indice_primera_fila_encabezado = 1
- var delimitador_csv = ";"
+
+var delimitador_csv = ";"
 
 var CANTIDAD_FILAS_CARGAR_POR_RONDA = 30 // filas x peticion
-var MAX_NUMERO_FILAS_CONSULTAR = 100
+var MAX_NUMERO_FILAS_CONSULTAR = 100 // Colocar valor mayor, como 1000, el objetivo es evitar problemas si es que selecciono un rango equivocado
+
+async function cargar_config(){
+    //REVISAR SI EXISTEN LAS KEYS EN SETTINGS, COLOCAR ADVERTENCIA | CARGAR
+    Office.context.document.settings.refreshAsync(function (asyncResult) {
+        if (asyncResult.status === Office.AsyncResultStatus.Succeeded) {
+            var rango_encabezados = Office.context.document.settings.get('rango_encabezados')
+            var ultimo_indice = Office.context.document.settings.get('ultimo_indice')
+
+            if(rango_encabezados == null || rango_encabezados == undefined){
+                //CREAR DIV QUE DIGA QUE NO ESTAN
+                return;
+            }
+
+            if(ultimo_indice == null || ultimo_indice == undefined){
+                //CREAR DIV QUE DIGA QUE NO ESTAN
+                return;
+            }
+            //TALVEZ GUARDAR EL RANGO COMO LISTA Y LISTO
+            [letra_primera_columna_encabezado, indice_primera_fila_encabezado, letra_ultima_columna_encabezado ,] = extraer_rango(rango_encabezados)
+
+
+            console.log(mySettings);
+        } else {
+            console.error('Error reading settings');
+        }
+    });
+
+}
+//CREAR OBJECTO QUE SE PUEDA QUITAR Y QUE VAYA EN EL DIV DE LA EXTENSION
+//TALVEZ HACER QUE ESTA FUNCION LANCE EL ERROR
+function mostrar_error(mensaje){
+    panel = document.querySelector('body')
+    
+    let div = document.createElement('div')
+    div.innerText = mensaje
+    //TALVEZ CAMBIAR A UNA CLASE Y COLOCAR EL CSS APARTE EN UNA ETIQUETA STYLE 
+    div.style = {
+        background: "rgba(255,0,0,0.3)",
+        padding: "5px",
+        border_radius: "5px",
+        border: "1px solid rgba(255,0,0,0.5)",
+        color: "red",
+        font_weight : "bold"
+    }
+
+    boton_cerrar = document.createElement('button')
+    boton_cerrar.innerText = "&#x2715;"
+    boton_cerrar.addEventListener("click", e => {this.parentElement.remove()})
+    boton_cerrar.style = {
+        position : "absolute",
+        top : "0px",
+        right: "0px"
+
+    }
+
+    div.appendChild(boton_cerrar)
+    panel.appendChild(div)
+    
+}
+
+function extraer_rango(rango){
+    regex = new RegExp(/!([A-Z]+)(\d+):([A-Z]+)(\d+)/)
+    resultado = regex.exec(rango)
+    if(resultado.length < 5){
+        mostrar_error("Error extraer valores de rango")
+        throw "Error extraer valores de rango"
+    } 
+    return resultado.slice(1)
+}
+
+
+//CAMBIAR DE COLOR TEMPORALMENTE A LAS CELDAS QUE SE VAN A DESCARGAR
+async function destacar_celdas(rango){
+    return;
+}
+
+//CAMBIAR LOS THROW PARA QUE SE MUESTREN EN EL MENU O ACOMPAÑAR PARA QUE SE VEAN EN SELENIUM
+async function cargar_encabezados(){
+    await Excel.run(async function (ctx) {
+        let selectedRange = ctx.workbook.getSelectedRange();
+        selectedRange.load(["address","values"])
+        
+        try{
+            await ctx.sync()
+        }catch(Error){
+            if(Error.message == 'The current selection is invalid for this operation.'){
+                mostrar_error("realiza solo 1 seleccion")
+                throw "realiza solo 1 seleccion"
+                }
+        }
+        
+        if(selectedRange.values.length > 1){
+            mostrar_error("mas de 1 fila seleccionada")
+            throw "mas de 1 fila seleccionada"
+        }
+        
+        //EXTRAER EL RANGO DE COMIENZO A FIN
+        //AL SER ENCABEZADOS NO NECESITAN EL 2do NUMERO o 2da LETRA
+        let L_1, N_1;
+        [L_1, N_1, ,] = extraer_rango(selectedRange.range)
+
+        
+        div = document.querySelector('#divEncabezados>select')
+        div.innerHTML = ""
+        //EXTRAER LA ADDRESS DE CADA ELEMENTO
+        for(var i = N_1; i < selectedRange.values[0].length; i++){
+
+            
+            // let check_columna = document.createElement('input')
+            // let label = document.createElement('label')
+
+            // let id_columna = "x" + i
+            // //AL PARECER ESTA ES LA UNICA FORMA DE ASIGNAR ATRIBUTOS
+            // //AGREGAR OPCIONES PARA QUE CADA COLUMNA PUEDA VALIDAR DE CIERTA MANERA
+            // check_columna.setAttribute("type", "checkbox")
+            // check_columna.setAttribute("name", valor)
+            // check_columna.setAttribute("value", valor)
+            // check_columna.setAttribute("id", id_columna)
+
+            // label.innerText =  valor
+            // label.setAttribute("for", id_columna)
+            let option = document.createElement('option')
+            option.setAttribute("value", valor)
+            option.setAttribute("id", L_1 + i)
+            option.innerText = valor
+            
+            div.appendChild(option)
+            
+        }
+
+    });
+
+}
 
 async function traer_casos_no_procesados_ultimoRango(ultimo_indice){
     let resultado = []
     await Excel.run(async (context) => {
         let hoja = context.workbook.worksheets.getItem(nombre_hoja);
         
-        let rango_encabezados = hoja.getRange(`${letra_primera_columna_encabezado}${indice_primera_fila_encabezado}:${letra_ultima_columna_encabezado}${indice_primera_fila_encabezado}`)
+        let valores_encabezados = hoja.getRange(`${letra_primera_columna_encabezado}${indice_primera_fila_encabezado}:${letra_ultima_columna_encabezado}${indice_primera_fila_encabezado}`)
                                     .getUsedRange()
                                     .load("values")
         
@@ -34,7 +170,7 @@ async function traer_casos_no_procesados_ultimoRango(ultimo_indice){
             }
             throw Error;
         }
-        resultado.push(["indice_excel"].concat(rango_encabezados.values[0]))      
+        resultado.push(["indice_excel"].concat(valores_encabezados.values[0]))      
         
         let ultimo_indice_vacio_encontrado = false
         indice_limite_superior = Number(ultimo_indice)

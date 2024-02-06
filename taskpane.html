@@ -9,6 +9,11 @@
     <p>Extension cargada por para la automatizacion de respuestas</p>
     <button>Cargar Encabezados</button>
     <div id="divEncabezados">
+        <ul>
+           <li>ultimo indice <span id="ultimo_indice"></span> <button><p>&#x1F50E;</p></button></li> 
+           <li>rango encabezados <span id="rango_encabezados"></span> <button><p>&#x1F50E;</p></button></li> 
+        </ul>
+        
         Seleccionar columna de referencia
         <select>
 
@@ -17,6 +22,24 @@
 
 
     </div>
-    <button>Busqueda de Prueba</button>
+    <button onclick="">Busqueda de Prueba</button>
+
+    <style>
+        .div_error{
+            background: rgba(255,0,0,0.3);
+            padding: 5px;
+            border-radius: 5px;
+            border: 1px solid rgba(255,0,0,0.5);
+            color: red;
+            font-weight : bold
+
+        }
+        .boton_error{
+            position : absolute;
+            /*top : 0px;*/
+            right: 0px;
+                    }
+        
+    </style>
 </body>
 </html>

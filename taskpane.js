@@ -12,27 +12,64 @@ var delimitador_csv = ";"
 
 var CANTIDAD_FILAS_CARGAR_POR_RONDA = 30 // filas x peticion
 var MAX_NUMERO_FILAS_CONSULTAR = 100 // Colocar valor mayor, como 1000, el objetivo es evitar problemas si es que selecciono un rango equivocado
+var cache_ultimo_valores_consultados;
+
+async function datos_a_descargar_prueba(ultimo_indice){
+    //EXTRAER RANGO DE ULTIMO INDICE Y 
+    /*
+    crear rango a partir del ultimo rango mas encabezado mas el buscar ultimo indice
+    cargar el rango con excel y seleccionarlo
+    almacenar el rango y cambiar el formato
+    quitar el formato despues de un time sleep
+    */
+    
+    cache_ultimo_valores_consultados = await traer_casos_no_procesados_ultimoRango(ultimo_indice)
+    let indice_final_datos = cache_ultimo_valores_consultados.slice(-1)[0]
+
+    let indice_descargar_datos = `{letra_primera_columna_encabezado}{ultimo_indice}:{indice_final_datos}`
+    Excel.run( async ctx => {
+        ctx.workbook.worksheets.getActiveWorksheet()
+                .getRange(indice_descargar_datos)
+                .select()
+        await ctx.sync()
+
+    })
+
+
+}
 
 async function cargar_config(){
     //REVISAR SI EXISTEN LAS KEYS EN SETTINGS, COLOCAR ADVERTENCIA | CARGAR
-    Office.context.document.settings.refreshAsync(function (asyncResult) {
+    Office.context.document.settings.refreshAsync(async function (asyncResult) {
         if (asyncResult.status === Office.AsyncResultStatus.Succeeded) {
             var rango_encabezados = Office.context.document.settings.get('rango_encabezados')
+            
+            //ULTIMO INDICE CONTIENE LETRA Y NUMERO
             var ultimo_indice = Office.context.document.settings.get('ultimo_indice')
-
+            
             if(rango_encabezados == null || rango_encabezados == undefined){
                 //CREAR DIV QUE DIGA QUE NO ESTAN
+                document.querySelector('span#rango_encabezados').innerText = "no encontrado"
                 return;
             }
 
             if(ultimo_indice == null || ultimo_indice == undefined){
                 //CREAR DIV QUE DIGA QUE NO ESTAN
+                document.querySelector('span#ultimo_indice').innerText = "no encontrado"
                 return;
             }
             //TALVEZ GUARDAR EL RANGO COMO LISTA Y LISTO
             [letra_primera_columna_encabezado, indice_primera_fila_encabezado, letra_ultima_columna_encabezado ,] = extraer_rango(rango_encabezados)
 
+            rango_y_valores = await Excel.run(async function (ctx) {
+                let hoja = context.workbook.worksheets.getItem(nombre_hoja);
+                let selectedRange = hoja.getRange(`{letra_primera_columna_encabezado}{indice_primera_fila_encabezado}:{letra_ultima_columna_encabezado}{indice_primera_fila_encabezado}`);
+                selectedRange.load(["address","values"])
+                await ctx.sync()
+                return selectedRange
+            });
 
+            pegar_encabezados(rango_y_valores)
             console.log(mySettings);
         } else {
             console.error('Error reading settings');
@@ -46,27 +83,17 @@ function mostrar_error(mensaje){
     panel = document.querySelector('body')
     
     let div = document.createElement('div')
+    div.classList.add("div_error")
     div.innerText = mensaje
-    //TALVEZ CAMBIAR A UNA CLASE Y COLOCAR EL CSS APARTE EN UNA ETIQUETA STYLE 
-    div.style = {
-        background: "rgba(255,0,0,0.3)",
-        padding: "5px",
-        border_radius: "5px",
-        border: "1px solid rgba(255,0,0,0.5)",
-        color: "red",
-        font_weight : "bold"
-    }
+
 
     boton_cerrar = document.createElement('button')
-    boton_cerrar.innerText = "&#x2715;"
+    boton_cerrar.classList.add("boton_error")
+    b_p = document.createElement('p')
+    b_p.innerText = "&#x2715;"
     boton_cerrar.addEventListener("click", e => {this.parentElement.remove()})
-    boton_cerrar.style = {
-        position : "absolute",
-        top : "0px",
-        right: "0px"
 
-    }
-
+    boton_cerrar.appendChild(b_p)
     div.appendChild(boton_cerrar)
     panel.appendChild(div)
     
@@ -85,10 +112,18 @@ function extraer_rango(rango){
 
 //CAMBIAR DE COLOR TEMPORALMENTE A LAS CELDAS QUE SE VAN A DESCARGAR
 async function destacar_celdas(rango){
-    return;
+    Excel.run((context) => {
+        let sheet = context.workbook.worksheets.getActiveWorksheet();
+        let range = sheet.getRange(rango);
+    
+        range.select();
+    
+        context.sync();
+    });
+    
+
 }
 
-//CAMBIAR LOS THROW PARA QUE SE MUESTREN EN EL MENU O ACOMPAÑAR PARA QUE SE VEAN EN SELENIUM
 async function cargar_encabezados(){
     await Excel.run(async function (ctx) {
         let selectedRange = ctx.workbook.getSelectedRange();
@@ -107,14 +142,16 @@ async function cargar_encabezados(){
             mostrar_error("mas de 1 fila seleccionada")
             throw "mas de 1 fila seleccionada"
         }
+        pegar_encabezados(selectedRange)
         
-        //EXTRAER EL RANGO DE COMIENZO A FIN
-        //AL SER ENCABEZADOS NO NECESITAN EL 2do NUMERO o 2da LETRA
-        let L_1, N_1;
-        [L_1, N_1, ,] = extraer_rango(selectedRange.range)
+    });
+}
 
-        
-        div = document.querySelector('#divEncabezados>select')
+function pegar_encabezados(range_y_valores){
+    let L_1, N_1;
+    [L_1, N_1, ,] = extraer_rango(selectedRange.range)
+
+    div = document.querySelector('#divEncabezados>select')
         div.innerHTML = ""
         //EXTRAER LA ADDRESS DE CADA ELEMENTO
         for(var i = N_1; i < selectedRange.values[0].length; i++){
@@ -141,13 +178,12 @@ async function cargar_encabezados(){
             div.appendChild(option)
             
         }
-
-    });
-
 }
 
+
+//DEVOLVER O ACTUALIZAR EL ULTIMO INDICE
 async function traer_casos_no_procesados_ultimoRango(ultimo_indice){
-    let resultado = []
+    let valores_rango = []
     await Excel.run(async (context) => {
         let hoja = context.workbook.worksheets.getItem(nombre_hoja);
         
@@ -170,7 +206,7 @@ async function traer_casos_no_procesados_ultimoRango(ultimo_indice){
             }
             throw Error;
         }
-        resultado.push(["indice_excel"].concat(valores_encabezados.values[0]))      
+        valores_rango.push(["indice_excel"].concat(valores_encabezados.values[0]))      
         
         let ultimo_indice_vacio_encontrado = false
         indice_limite_superior = Number(ultimo_indice)
@@ -192,7 +228,7 @@ async function traer_casos_no_procesados_ultimoRango(ultimo_indice){
             await context.sync()
 
             let valores_rango_cargado = valores_rango_precarga.values.entries()
-
+            //EXTRAER SOLAMENTE EL RANGO O DEVOLVER EL OBJETO DE RANGOM
             for(var [indice_,fila_] of valores_rango_cargado){
                 if(fila_[0] == ""){
                     ultimo_indice_vacio_encontrado = true 
@@ -200,14 +236,14 @@ async function traer_casos_no_procesados_ultimoRango(ultimo_indice){
                 }
                 let indice_fila = indice_limite_superior + indice_
                 let rango_fila_columna_carga = `${letra_ultima_columna_encabezado}${indice_fila}` // A1
-                resultado.push([rango_fila_columna_carga].concat(fila_))
+                valores_rango.push([rango_fila_columna_carga].concat(fila_))
             }
             
             indice_limite_superior = indice_limite_inferior
         }
     });
 
-    if(resultado.length == 1){
+    if(valores_rango.length == 1){
         console.info(`No se encontraron casos nuevos entre ${letra_primera_columna_encabezado}${ultimo_indice}:${letra_ultima_columna_encabezado}${indice_limite_inferior} `)
         return []; 
     }
@@ -221,11 +257,11 @@ function resultado_a_csv(resultado){
 
 async function pegar_csv(texto_csv){
     await Excel.run(async (context) => {
-        let sheet = context.workbook.worksheets.getItem(nombre_hoja);
+        let hoja = context.workbook.worksheets.getItem(nombre_hoja);
         let valores_fila = texto_csv.split('\n').slice(1) //Quitar los encabezados
         for(let fila of valores_fila){
             fila = fila.split(delimitador_csv)
-            let range = sheet.getRange(fila[0])
+            let range = hoja.getRange(fila[0])
             range.values = fila[1]//Quitar el indice_excel 
         }
         

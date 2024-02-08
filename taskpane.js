@@ -24,9 +24,9 @@ async function datos_a_descargar_prueba(ultimo_indice){
     */
     
     cache_ultimo_valores_consultados = await traer_casos_no_procesados_ultimoRango(ultimo_indice)
-    let indice_final_datos = cache_ultimo_valores_consultados.slice(-1)[0]
+    let indice_final_datos = cache_ultimo_valores_consultados.slice(-1)[0][0]
 
-    let indice_descargar_datos = `{letra_primera_columna_encabezado}{ultimo_indice}:{indice_final_datos}`
+    let indice_descargar_datos = `${letra_primera_columna_encabezado}${ultimo_indice}:${indice_final_datos}`
     Excel.run( async ctx => {
         ctx.workbook.worksheets.getActiveWorksheet()
                 .getRange(indice_descargar_datos)
@@ -63,7 +63,7 @@ async function cargar_config(){
 
             rango_y_valores = await Excel.run(async function (ctx) {
                 let hoja = context.workbook.worksheets.getItem(nombre_hoja);
-                let selectedRange = hoja.getRange(`{letra_primera_columna_encabezado}{indice_primera_fila_encabezado}:{letra_ultima_columna_encabezado}{indice_primera_fila_encabezado}`);
+                let selectedRange = hoja.getRange(`${letra_primera_columna_encabezado}${indice_primera_fila_encabezado}:${letra_ultima_columna_encabezado}${indice_primera_fila_encabezado}`);
                 selectedRange.load(["address","values"])
                 await ctx.sync()
                 return selectedRange
@@ -248,7 +248,7 @@ async function traer_casos_no_procesados_ultimoRango(ultimo_indice){
         return []; 
     }
     
-    return resultado;
+    return valores_rango;
 }
 
 function resultado_a_csv(resultado){
@@ -274,7 +274,9 @@ Office.onReady(async (info) => {
     if (info.host === Office.HostType.Excel) {
         Office.context.document.settings.set("Office.AutoShowTaskpaneWithDocument", true);
         Office.context.document.settings.saveAsync();
+        
     }
+    cargar_config()
 });
 
 

@@ -7,20 +7,15 @@
 
 <body style="font-family: Helvetica">
     <p>Extension cargada por para la automatizacion de respuestas</p>
-    <button onclick="cargar_encabezados()">Cargar Encabezados</button>
+    
+    <button onclick="cargar_encabezados()">seleccionar columna validacion</button>
     <div id="divEncabezados">
         <ul>
-           <li>ultimo indice <span id="ultimo_indice"></span> <button><p>&#x1F50E;</p></button></li> 
-           <li>rango encabezados <span id="rango_encabezados"></span> <button><p>&#x1F50E;</p></button></li> 
+           <li>ultimo indice <span id="ultimo_indice"></span> <button><p>&#x1F50E;</p></button><button onclick="cargar_seleccion('ultimo_indice')"><p>&#9998;</p></button></li></li> 
+           <li>rango encabezados <span id="rango_encabezados"></span> <button><p>&#x1F50E;</p></button><button onclick="cargar_seleccion('rango_encabezados')"><p>&#9998;</p></button></li> 
+           <li>rango validacion <span id="rango_validacion"></span> <button><p>&#x1F50E;</p></button><button onclick="cargar_seleccion('rango_validacion')"><p>&#9998;</p></button></li> 
         </ul>
         
-        Seleccionar columna de referencia
-        <select>
-
-            
-        </select>
-
-
     </div>
     <button onclick="">Busqueda de Prueba</button>
 

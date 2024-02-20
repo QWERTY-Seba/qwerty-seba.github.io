@@ -6,35 +6,81 @@
 </head>
 
 <body style="font-family: Helvetica">
-    <p>Extension cargada por para la automatizacion de respuestas</p>
-    
-    <button onclick="cargar_encabezados()">seleccionar columna validacion</button>
-    <div id="divEncabezados">
-        <ul>
-           <li>ultimo indice <span id="ultimo_indice"></span> <button><p>&#x1F50E;</p></button><button onclick="cargar_seleccion('ultimo_indice')"><p>&#9998;</p></button></li></li> 
-           <li>rango encabezados <span id="rango_encabezados"></span> <button><p>&#x1F50E;</p></button><button onclick="cargar_seleccion('rango_encabezados')"><p>&#9998;</p></button></li> 
-           <li>rango validacion <span id="rango_validacion"></span> <button><p>&#x1F50E;</p></button><button onclick="cargar_seleccion('rango_validacion')"><p>&#9998;</p></button></li> 
-        </ul>
-        
+    <div id="errores">
+
     </div>
-    <button onclick="">Busqueda de Prueba</button>
+    <p>Extension cargada por para la automatizacion de respuestas</p>
+    <p id="nombre_hoja">nombre hoja</p>
+
+    <div id="div_hoja">
+        
+        <button onclick="crear_tabla_personalizada()">Crear Tabla</button>
+
+        <div id="contenedor_tablas">
+
+        </div>
+                
+    </div>
+    
 
     <style>
+        #errores{
+            position: fixed;
+            width: 100%;
+            z-index: 1;
+            top: 0px;
+        }
         .div_error{
-            background: rgba(255,0,0,0.3);
+            background: rgb(248,214,214);
             padding: 5px;
-            border-radius: 5px;
+            
             border: 1px solid rgba(255,0,0,0.5);
             color: red;
-            font-weight : bold
+            font-weight : bold;
+            min-height: 22px;
 
         }
         .boton_error{
             position : absolute;
             /*top : 0px;*/
-            right: 0px;
+            right: 10px;
                     }
-        
+
+.tabla{
+	
+  	width: 100%;
+ 	min-height: 100px;
+  	margin-top: 10px;
+    background-color: rgb(255 255 255);
+    border-radius: 10px;
+    box-shadow: 0 0 2px rgba(0,0,0,0.12), 0 2px 4px rgba(0,0,0,0.14);
+}
+
+.tabla h3{
+	position: relative;
+  
+  	left: 20px;
+	margin: 0px;
+  	background: white;
+  	display: inline-block;
+  
+}
+.boton_rangos{
+	border: none;
+  	cursor: pointer;
+  	background: none;
+  	font-size: 12px;  	
+
+}
+
+.boton_rangos:hover{
+	background-color: #f5f5f5;
+}
+
+.tabla .contenedor_botones{
+	display: inline-block;
+
+}
     </style>
 </body>
 </html>
